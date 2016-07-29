@@ -8,6 +8,6 @@ pip install -r requirements.txt
 
 ## Running
 ```
-python match.py
+python server.py
 ```
 Server will be available at `localhost:5000`
