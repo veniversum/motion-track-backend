@@ -1,9 +1,11 @@
 import uuid
+import time
 from match import *
 from flask import json
 from flask import Flask, request
 from flask import render_template
 from flask import jsonify
+
 app = Flask(__name__)
 
 @app.route('/granger/', methods=['POST'])
@@ -24,15 +26,15 @@ def logging():
     print data
     global data1
     global data2
-    global result
+    global output
     if data1 is None:
         data1 = data
     elif data2 is None:
         data2 = data
-        result.update({"correff":corr(data1, data2)})
-        result.update({"granger_match":granger(data1, data2)})
-        result.update({"data1":data1})
-        result.update({"data2":data2})
+        output.update({"correff":corr(data1, data2)})
+        output.update({"granger_match":granger(data1, data2)})
+        output.update({"data1":data1})
+        output.update({"data2":data2})
     else:
         data1 = data
         data2 = None
@@ -43,12 +45,12 @@ def logging():
 def send(uid=None):
     if request.method == 'POST':
         uid = str(uuid.uuid4())
-        senders[uid] = {'data': request.get_json(silent=True)['data'], 'amount': request.get_json(silent=True)['amount'], 'id': request.get_json(silent=True)['id']}
+        senders[uid] = {'data': request.get_json(silent=True)['data'], 'amount': request.get_json(silent=True)['amount'], 'id': request.get_json(silent=True)['id'], 'geo': request.get_json(silent=True)['geo']}
         doMatch(uid, 'sender')
         return jsonify({'uid':uid})
     elif request.method == 'GET' and uid is not None:
         if uid in result:
-            return result.get(uid)
+            return jsonify({'uid':uid, 'status':'success', 'data': result.get(uid)})
         elif uid in senders:
             return jsonify({'uid':uid, 'status':'pending'})
         else:
@@ -59,12 +61,12 @@ def send(uid=None):
 def receive(uid=None):
     if request.method == 'POST':
         uid = str(uuid.uuid4())
-        receivers[uid] = {'data':request.get_json(silent=True)['data'], 'id': request.get_json(silent=True)['id']}
+        receivers[uid] = {'data':request.get_json(silent=True)['data'], 'id': request.get_json(silent=True)['id'], 'geo': request.get_json(silent=True)['geo']}
         doMatch(uid, 'receiver')
         return jsonify({'uid':uid})
     elif request.method == 'GET' and uid is not None:
         if uid in result:
-            return result.get(uid)
+            return jsonify({'uid':uid, 'status':'success', 'data': result.get(uid)})
         elif uid in receivers:
             return jsonify({'uid':uid, 'status':'pending'})
         else:
@@ -73,17 +75,17 @@ def receive(uid=None):
 
 @app.route('/status/', methods=['GET'])
 def status():
-    global result
-    return jsonify(result)
+    global output
+    return jsonify(output)
 
 @app.route('/rerun/<int:fit>', methods=['GET'])
 def rerun(fit):
-    global result
+    global output
     global data1
     global data2
-    result.update({"correff":corr(data1, data2)})
-    result.update({"granger_match":granger(data1, data2, fit)})
-    return jsonify(result)
+    output.update({"correff":corr(data1, data2)})
+    output.update({"granger_match":granger(data1, data2, fit)})
+    return jsonify(output)
     
 if __name__ == '__main__':
     app.run(host= '0.0.0.0')
