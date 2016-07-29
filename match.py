@@ -6,8 +6,8 @@ from expiringdict import ExpiringDict
 
 data1 = None
 data2 = None
-senders = ExpiringDict(max_len=100, max_age_seconds=10)
-receivers = ExpiringDict(max_len=100, max_age_seconds=10)
+senders = ExpiringDict(max_len=100, max_age_seconds=30)
+receivers = ExpiringDict(max_len=100, max_age_seconds=30)
 result = ExpiringDict(max_len=100, max_age_seconds=3600)
 output = {}
 

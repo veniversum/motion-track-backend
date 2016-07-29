@@ -1,5 +1,7 @@
 import uuid
 import time
+import os
+
 from match import *
 from flask import json
 from flask import Flask, request
@@ -7,6 +9,8 @@ from flask import render_template
 from flask import jsonify
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'this_should_be_configured')
+
 
 @app.route('/granger/', methods=['POST'])
 def process():
@@ -43,6 +47,8 @@ def logging():
 @app.route('/send/', methods=['POST'])
 @app.route('/send/<uid>', methods=['GET'])
 def send(uid=None):
+    global senders
+    global result
     if request.method == 'POST':
         uid = str(uuid.uuid4())
         senders[uid] = {'data': request.get_json(silent=True)['data'], 'amount': request.get_json(silent=True)['amount'], 'id': request.get_json(silent=True)['id'], 'geo': request.get_json(silent=True)['geo']}
@@ -59,6 +65,8 @@ def send(uid=None):
 @app.route('/receive/', methods=['POST'])
 @app.route('/receive/<uid>', methods=['GET'])
 def receive(uid=None):
+    global receivers
+    global result
     if request.method == 'POST':
         uid = str(uuid.uuid4())
         receivers[uid] = {'data':request.get_json(silent=True)['data'], 'id': request.get_json(silent=True)['id'], 'geo': request.get_json(silent=True)['geo']}
@@ -88,4 +96,4 @@ def rerun(fit):
     return jsonify(output)
     
 if __name__ == '__main__':
-    app.run(host= '0.0.0.0')
+    app.run(debug=True)
